@@ -1,5 +1,5 @@
 # Core dependencies
-uvicorn>=0.15.0
+uvicorn[standard]
 weaviate-client>=4.9.6
 langchain>=0.0.200
 langchain-community>=0.0.10
