@@ -101,12 +101,12 @@ if __name__ == "__main__":
     setup_weaviate()
      # Influential machine learning papers
     source_urls = [
-        "https://confluence.ergo.lv/pages/viewpage.action?spaceKey=NET&title=Environments+layout",
+        "",
 
     ]
 
     # And their corresponding titles (because Docling doesn't have title extraction yet!)
     source_titles = [
-        "Environments layout",
+        "",
     ]
-    process_documents(source_titles=source_titles, source_urls=source_urls)
+    #process_documents(source_titles=source_titles, source_urls=source_urls)
