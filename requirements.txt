@@ -10,3 +10,4 @@ fastapi>=0.68.0
 pydantic>=1.8.0
 python-multipart>=0.0.20
 gunicorn>=21.2.0
+azure-storage-blob>=12.0.0
