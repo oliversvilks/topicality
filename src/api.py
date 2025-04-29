@@ -8,7 +8,7 @@ import shutil
 import os
 import json
 from pathlib import Path
-from .models import MultiContextComparisonRequest, ProcessRequest, DocumentMetadata, SchemaDefinition, ComparisonQueryRequest, ContextFilter, CopyDocumentRequest, TextMetadata, TextQueryFilter
+from .models import FlowNodeResponse,MultiTreeFlowRequest, MultiContextFlowRequest, FlowStep,  MultiContextComparisonRequest, BlobDocumentRequest, ProcessRequest, DocumentMetadata, SchemaDefinition, ComparisonQueryRequest, ContextFilter, CopyDocumentRequest, TextMetadata, TextQueryFilter
 from .main import process_documents, setup_weaviate
 from .processors.weaviate_processor import WeaviateProcessor
 import weaviate.classes.config as wc
@@ -20,6 +20,10 @@ from docling_core.transforms.chunker import BaseChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from weaviate.classes.query import Filter
 import logging
+import openai
+from azure.storage.blob import BlobServiceClient
+import os
+from urllib.parse import urlparse
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -59,6 +63,87 @@ async def startup_event():
 @app.get("/")
 def read_root():
     return {"message": "Hello from Azure!"}
+
+@app.post("/process/blob/", tags=["Documents"])
+async def process_document_blob(request: BlobDocumentRequest = Body(...)):
+    try:
+        # Download the file from Azure Blob Storage
+        file_name = request.title
+        if not file_name.endswith(f".{request.extension}"):
+            file_name = f"{file_name}.{request.extension}"
+        file_path = DATA_DIR / file_name
+
+
+        # In your endpoint:
+        container, blob = parse_blob_url(request.source)
+        download_blob_to_file(container, blob, file_path)
+
+        # Create document metadata using camelCase keys
+        metadata = {
+            "title": request.title,
+            "filename": file_name,
+            "user": request.user,
+            "category": request.category,
+            "categoryId": request.categoryId,
+            "description": request.description,
+            "document_created": request.documentCreated.isoformat(),
+            "datecreated": request.dateCreated.isoformat(),
+            "dateupdated": request.dateUpdated.isoformat(),
+            "extension": request.extension,
+            "source": request.source,
+            "file_path": str(file_path)
+        }
+
+        # Process the document and save to Weaviate
+        processor = WeaviateProcessor()
+        if not processor.client.collections.exists(metadata["user"]):
+            collection = processor.create_schema(metadata["user"])
+            print(f"Created new collection for user: {metadata['user']}")
+        else:
+            collection = processor.client.collections.get(metadata["user"])
+            print(f"Using existing collection for user: {metadata['user']}")
+
+        # Convert document to text chunks
+        converter = DocumentConverter()
+        doc_result = converter.convert(str(file_path))
+        conv_results_iter = converter.convert_all([str(file_path)])
+
+        # Iterate over the generator to get a list of Docling documents
+        docs = [doc_result.document for result in conv_results_iter]
+        chunker = HybridChunker(max_tokens=8000)
+        chunks = chunker.chunk(doc_result.document)
+
+        for chunk in chunks:
+            chunk_data = {
+                **metadata,
+                "text": chunk.text,
+            }
+            collection.data.insert(chunk_data)
+
+        return JSONResponse(
+            content={
+                "status": "success",
+                "message": "Blob document processed and stored successfully",
+                "document": {
+                    "title": request.title,
+                    "filename": file_name,
+                    "category": request.category,
+                }
+            }
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": str(e),
+                "document": request.source
+            }
+        )
+    finally:
+        if 'processor' in locals():
+            processor.client.close()
 
 @app.post("/process/", tags=["Documents"])
 async def process_document(
@@ -844,8 +929,8 @@ async def vectorize_text(text_metadata: TextMetadata):
             "text": text_metadata.text,
             "category": text_metadata.category,
             "description": text_metadata.description,
-            "datecreated": text_metadata.datecreated.isoformat(),
-            "dateupdated": text_metadata.dateupdated.isoformat()
+            "datecreated": text_metadata.datecreated,
+            "dateupdated": text_metadata.dateupdated
         }
 
         # Store text with metadata
@@ -985,3 +1070,238 @@ async def compare_multiple_contexts(request: MultiContextComparisonRequest):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         processor.client.close()
+
+# Dummy OpenAI call
+async def ask_openai(prompt: str) -> str:
+    # Replace with your real OpenAI call
+    response = await openai.ChatCompletion.acreate(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "system", "content": "You are a strategic AI assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+    return response.choices[0].message.content.strip()
+
+openai_client = openai.OpenAI()
+
+def get_category_texts(collection: str, category: str) -> List[str]:
+    # Replace this with actual Weaviate search
+    mock_data = {
+        "second": ["its larger than 10, but is it odd or even"],
+        "third": ["it's smaller than 10 but is it odd or even?"],
+        "fourth": ["its even"],
+        "fifth": ["It's odd"]
+    }
+    return mock_data.get(category, [f"No info found for {category}"])
+
+# ---- The upgraded route ----
+@app.post("/flow/multi_tree", tags=["Flow"])
+async def flow_multi_tree(request: MultiTreeFlowRequest):
+    try:
+        processor = WeaviateProcessor()
+
+        async def get_context(context_filter: ContextFilter):
+            results = []
+            for collection_name in context_filter.collections:
+                if not processor.client.collections.exists(collection_name):
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Collection '{collection_name}' not found"
+                    )
+                
+                collection = processor.client.collections.get(collection_name)
+
+                # Build category OR filter
+                filter_query = None
+                if context_filter.categories:
+                    filter_query = Filter.by_property("category").equal(context_filter.categories[0])
+                    for cat in context_filter.categories[1:]:
+                        filter_query = filter_query | Filter.by_property("category").equal(cat)
+
+                response = collection.query.fetch_objects(
+                    return_properties=["text", "category", "description"],
+                    filters=filter_query,
+                    limit=10
+                )
+
+                if response and hasattr(response, 'objects'):
+                    context_data = [
+                        {
+                            "text": obj.properties.get("text", ""),
+                            "category": obj.properties.get("category", ""),
+                            "description": obj.properties.get("description", "")
+                        } for obj in response.objects
+                    ]
+                    results.extend(context_data)
+
+            return results
+
+        # --- STEP 1: Build flow lookup ---
+        flow_map = {step.entrance_category: step for step in request.flow}
+        journey: List[FlowNodeResponse] = []
+        current_category = request.flow[0].entrance_category
+        current_question = request.question
+
+        # --- STEP 2: Iteratively process each flow step ---
+        while current_category:
+            current_step = flow_map.get(current_category)
+            if not current_step:
+                break
+
+            # --- STEP 2.1: Fetch and format context for current step ---
+            formatted_context = []
+            for context in current_step.contexts:
+                results = await get_context(context)
+                context_text = "\n".join([f"- {r['text']}" for r in results])
+                formatted_context.append(f"Collections: {', '.join(context.collections)} | Categories: {', '.join(context.categories)}\n{context_text}")
+            
+            context_text_block = "\n\n".join(formatted_context)
+
+            # --- STEP 2.2: Construct prompt ---
+            available_categories = list(set(sum([ctx.categories for ctx in current_step.contexts], [])))
+            system_prompt = "You are a decision-making assistant navigating through multiple topics. Always respond only in JSON format."
+
+            user_prompt = f"""
+You are answering the question: "{current_question}"
+
+You are currently at the entrance category: "{current_category}"
+
+Here is the information available:
+{context_text_block}
+
+But also take reasoning forces into account to make decisions.
+
+Respond strictly in JSON format like this:
+{{
+  "response": "Your answer to the question",
+  "next_category": "The chosen next category (must be one of {', '.join(available_categories)} or empty if end)",
+  "reason": "Why you chose this category",
+  "next_question": "Refined question to ask at next step"
+}}
+"""
+
+            # --- STEP 2.3: Ask OpenAI to make decision ---
+            response = openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                functions=[
+                    {
+                        "name": "flow_step",
+                        "description": "Make a decision about the next flow step",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "response": {"type": "string"},
+                                "next_category": {"type": "string"},
+                                "reason": {"type": "string"},
+                                "next_question": {"type": "string"}
+                            },
+                            "required": ["response", "next_category", "reason", "next_question"]
+                        }
+                    }
+                ],
+                function_call={"name": "flow_step"}
+            )
+
+            result_args = json.loads(response.choices[0].message.function_call.arguments)
+
+            # --- STEP 2.4: Save step result ---
+            journey.append(FlowNodeResponse(
+                entrance_category=current_category,
+                chosen_category=result_args["next_category"],
+                reason=result_args["reason"],
+                refined_question=result_args["next_question"],
+                response=result_args["response"]
+            ))
+
+            # --- STEP 2.5: Prepare for next step ---
+            current_category = result_args["next_category"] or None
+            current_question = result_args["next_question"] or current_question
+
+        # --- STEP 3: Return the journey ---
+        return {
+            "status": "success",
+            "initial_question": request.question,
+            "journey": [node.dict() for node in journey]
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+def parse_blob_url(url):
+    # Example: https://account.blob.core.windows.net/container/blob
+    parts = urlparse(url)
+    path_parts = parts.path.lstrip('/').split('/', 1)
+    return path_parts[0], path_parts[1]  # container, blob
+
+
+def download_blob_to_file(container_name: str, blob_name: str, file_path: str):
+    # Get connection string from environment variable or Azure App Service settings
+    conn_str = os.environ["AZURE_STORAGE_CONNECTION_STRING"]
+    blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+    container_client = blob_service_client.get_container_client(container_name)
+    blob_client = container_client.get_blob_client(blob_name)
+    with open(file_path, "wb") as f:
+        download_stream = blob_client.download_blob()
+        f.write(download_stream.readall())
+
+def build_comparison_prompt(contexts_results, question, entrance_category, available_categories):
+    prompt = f"""
+You are guiding a user through an analysis flow.
+
+The entrance category is: **{entrance_category}**.
+
+Available categories to move to next: {', '.join(available_categories)}.
+
+Main Question: {question}
+
+Here are the current contexts:
+
+{'\n\n'.join([
+    f"Context {i+1} (collections: {', '.join(ctx['collections'])}, categories: {', '.join(ctx['categories'])}):\n{ctx['formatted_text']}"
+    for i, ctx in enumerate(contexts_results)
+])}
+
+Instructions:
+- Based on the entrance, decide the best next category.
+- If no good next category remains, set finished=true.
+- Otherwise, pick next_category, explain your reasoning, and create a next_question.
+"""
+    return prompt
+
+flow_tool = {
+    "type": "function",
+    "function": {
+        "name": "decide_next_category",
+        "description": "Decide the next category to focus on based on the entrance analysis. If no good next step, mark finished=true.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "next_category": {
+                    "type": "string",
+                    "description": "The category to explore next."
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Why this category was chosen or why the flow should stop."
+                },
+                "next_question": {
+                    "type": "string",
+                    "description": "The follow-up question for the next category."
+                },
+                "finished": {
+                    "type": "boolean",
+                    "description": "Whether the flow is finished."
+                }
+            },
+            "required": ["reason", "finished"]
+        }
+    }
+}
