@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\svcutil" *.wsdl /serviceContract *.xsd /n:*,Topicality.Service /language:C#

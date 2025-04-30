@@ -1,0 +1,18 @@
+﻿@model Topicality.Domain.Entities.UserCategory
+
+<div class="card">
+    <div class="card-header">Create category </div>
+    <div class="card-body"> 
+        <form method="post">
+
+            <div class="mt-1  input-group input-group-outline form-group">
+                <label class="form-label" asp-for="Name"></label>
+                <input asp-for="Name" class="form-control"/>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="col">
+              <button type="submit" class="mt-1 btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>

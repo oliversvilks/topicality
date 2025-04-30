@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/StatusMessageBAS/V1"
+  targetNamespace="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/StatusMessageBAS/V1" name="StatusMessageBAS"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" 
+  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+  xmlns:ccn2_cmn="http://ccn2.ec.eu/CCN2.Service.Platform.Common.Schema"
+  xmlns:itf="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/IStatusMessageBAS/V1">
+  
+  <wsdl:import namespace="http://ccn2.ec.eu/CCN2.Service.Platform.SecurityPolicies"
+    location="../../../../Policies/CCN2/CCN2.Service.Platform.SecurityPolicies.wsdl" />
+    
+  <wsdl:types>
+    <xs:schema>
+	  <xs:import namespace="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/IStatusMessageBAS/V1"
+		schemaLocation="ICCN2.Service.Taxation.Default.AEOI_DAC7.StatusMessageBAS.xsd" />
+	  <xs:import namespace="http://ccn2.ec.eu/CCN2.Service.Platform.Common.Schema"
+		schemaLocation="../../../../BusinessObjects/CCN2/CCN2.Service.Platform.Common.Schema.xsd" />
+    </xs:schema>
+  </wsdl:types>
+  
+  <wsdl:message name="StatusMessageReqMsg">
+    <wsdl:part name="param" element="itf:StatusMessageReqMsg" />
+  </wsdl:message>
+  <wsdl:message name="StatusMessageRespMsg">
+    <wsdl:part name="param" element="itf:StatusMessageRespMsg" />
+  </wsdl:message>
+  <wsdl:message name="ccnFault">
+    <wsdl:part name="param" element="ccn2_cmn:Fault" />
+  </wsdl:message>
+  
+  <wsdl:portType name="StatusMessageBAS">
+    <wsdl:operation name="send">
+      <wsdl:input name="StatusMessageReqMsg" message="StatusMessageReqMsg"
+        wsaw:Action="CCN2.Service.Taxation.Default.AEOI_DAC7.StatusMessageBAS/send" />
+      <wsdl:output name="StatusMessageRespMsg" message="StatusMessageRespMsg" />
+      <wsdl:fault name="ccnFault" message="ccnFault" />
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>

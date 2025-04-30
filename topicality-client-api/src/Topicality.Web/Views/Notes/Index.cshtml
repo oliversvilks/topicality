@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Notes";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div>
+    <textarea data-bind="value: textContent" placeholder="Enter notes.." rows="5" cols="50"></textarea>
+    <br />
+    <select data-bind="options: categories, 
+                     optionsText: 'name', 
+                     optionsValue: 'name',
+                     value: selectedCategory,
+                     optionsCaption: 'Select a category...'"></select>
+    <br /><br />
+    <button data-bind="click: submitText, enable: canSubmit">Submit</button>
+</div>
+
+<div data-bind="visible: responseMessage">
+    <h3 data-bind="text: responseMessage"></h3>
+</div>
+
+@section Scripts {
+    <script>
+        function ViewModel() {
+            var self = this;
+
+            self.textContent = ko.observable("");
+            self.responseMessage = ko.observable("");
+            self.categories = ko.observableArray([]);
+            self.selectedCategory = ko.observable("");
+
+            // Computed observable to check if form can be submitted
+            self.canSubmit = ko.computed(function() {
+                return self.textContent() && self.selectedCategory();
+            });
+
+            // Load categories when the view model is created
+            self.loadCategories = function() {
+                fetch('/api/UserData/categories')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        self.categories(data);
+                    })
+                    .catch(error => {
+                        console.error('Error loading categories:', error);
+                        self.responseMessage("Error loading categories. Please try again later.");
+                    });
+            };
+
+            self.submitText = function () {
+                var textData = {
+                    user: "", // Replace with actual user
+                    text: self.textContent(),
+                    description: "User-submitted text",
+                    category: self.selectedCategory()
+                };
+
+                fetch('/api/Query/vectorize/text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(textData)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        self.responseMessage(data);
+                        // Optional: clear the form after successful submission
+                        self.textContent("");
+                        //self.selectedCategory(null);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        self.responseMessage("Error vectorizing text.");
+                    });
+            };
+
+            // Initialize by loading categories
+            self.loadCategories();
+        }
+
+        ko.applyBindings(new ViewModel());
+    </script>
+}

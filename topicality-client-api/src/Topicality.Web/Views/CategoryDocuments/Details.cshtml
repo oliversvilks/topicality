@@ -1,0 +1,22 @@
+﻿@model Topicality.Domain.Entities.CategoryDocument
+
+<h1>Details</h1>
+
+<div>
+    <h4>CategoryDocument</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Id</dt>
+        <dd class="col-sm-10">@Model.Id</dd>
+        <dt class="col-sm-2">Category</dt>
+        <dd class="col-sm-10">@Model.Category?.Name</dd>
+        <dt class="col-sm-2">Document Metadata</dt>
+        <dd class="col-sm-10">@Model.DocumentMetadata?.Title</dd>
+        <dt class="col-sm-2">Uuid</dt>
+        <dd class="col-sm-10">@Model.Uuid</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

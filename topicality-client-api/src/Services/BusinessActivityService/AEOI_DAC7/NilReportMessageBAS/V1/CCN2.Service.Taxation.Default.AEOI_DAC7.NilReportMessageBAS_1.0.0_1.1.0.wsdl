@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/NilReportMessageBAS/V1"
+  targetNamespace="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/NilReportMessageBAS/V1" name="NilReportMessageBAS"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" 
+  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+  xmlns:ccn2_cmn="http://ccn2.ec.eu/CCN2.Service.Platform.Common.Schema"
+  xmlns:itf="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/INilReportMessageBAS/V1">
+  
+  <wsdl:import namespace="http://ccn2.ec.eu/CCN2.Service.Platform.SecurityPolicies"
+    location="../../../../Policies/CCN2/CCN2.Service.Platform.SecurityPolicies.wsdl" />
+    
+  <wsdl:types>
+    <xs:schema>
+	  <xs:import namespace="http://xmlns.ec.eu/BusinessActivityService/AEOI_DAC7/INilReportMessageBAS/V1"
+		schemaLocation="ICCN2.Service.Taxation.Default.AEOI_DAC7.NilReportMessageBAS.xsd" />
+	  <xs:import namespace="http://ccn2.ec.eu/CCN2.Service.Platform.Common.Schema"
+		schemaLocation="../../../../BusinessObjects/CCN2/CCN2.Service.Platform.Common.Schema.xsd" />
+    </xs:schema>
+  </wsdl:types>
+  
+  <wsdl:message name="NilReportMessageReqMsg">
+    <wsdl:part name="param" element="itf:NilReportMessageReqMsg" />
+  </wsdl:message>
+  <wsdl:message name="NilReportMessageRespMsg">
+    <wsdl:part name="param" element="itf:NilReportMessageRespMsg" />
+  </wsdl:message>
+  <wsdl:message name="ccnFault">
+    <wsdl:part name="param" element="ccn2_cmn:Fault" />
+  </wsdl:message>
+  
+  <wsdl:portType name="NilReportMessageBAS">
+    <wsdl:operation name="send">
+      <wsdl:input name="NilReportMessageReqMsg" message="NilReportMessageReqMsg"
+        wsaw:Action="CCN2.Service.Taxation.Default.AEOI_DAC7.NilReportMessageBAS/send" />
+      <wsdl:output name="NilReportMessageRespMsg" message="NilReportMessageRespMsg" />
+      <wsdl:fault name="ccnFault" message="ccnFault" />
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>

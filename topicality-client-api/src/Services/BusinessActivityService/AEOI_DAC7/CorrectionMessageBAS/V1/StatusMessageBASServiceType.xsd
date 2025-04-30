@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="http://xmlns.ec.eu/BusinessObjects/AEOI_DAC7/Common/V1"
+  targetNamespace="http://xmlns.ec.eu/BusinessObjects/AEOI_DAC7/Common/V1" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:stf="urn:oecd:ties:dpistf:v1" xmlns:dsm="urn:oecd:ties:dsm:v1">
+  
+  <xs:import namespace="urn:oecd:ties:dsm:v1" schemaLocation="DAC7StatusMessageXML_v1.0.xsd"/>
+  <xs:import namespace="urn:oecd:ties:dpistf:v1" schemaLocation="oecddpitypes_v1.0.xsd"/>
+
+  <xs:complexType name="StatusMessageRequestType">
+    <xs:sequence>
+      <xs:element ref="dsm:DAC7StatusMessage" />  
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="StatusMessageResponseType">
+    <xs:sequence>
+      <xs:element name="received" type="xs:integer" fixed="1" minOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="http://xmlns.ec.eu/BusinessObjects/AEOI_DAC7/Common/V1"
+  targetNamespace="http://xmlns.ec.eu/BusinessObjects/AEOI_DAC7/Common/V1" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:stf="urn:oecd:ties:dpistf:v1" xmlns:dpi="urn:oecd:ties:dpi:v1">
+  
+  <xs:import namespace="urn:oecd:ties:dpi:v1" schemaLocation="DPIXML_v1.09.xsd"/>
+  <xs:import namespace="urn:oecd:ties:dpistf:v1" schemaLocation="oecddpitypes_v1.0.xsd"/>
+
+  <xs:complexType name="CorrectionMessageRequestType">
+    <xs:sequence>
+      <xs:element ref="dpi:DPI_OECD" />  
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CorrectionMessageResponseType">
+    <xs:sequence>
+      <xs:element name="received" type="xs:integer" fixed="1" minOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Multi Comparison";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="container mt-5">
+    <h2>Enter Query</h2>
+    <textarea class="form-control mb-3" placeholder="Enter your query here..." data-bind="value: queryText"></textarea>
+
+    <h2>Context Filters</h2>
+    <div data-bind="foreach: contextFilters">
+        <div class="card mb-3">
+            <div class="card-header">
+                Context Filter <span data-bind="text: id"></span>
+                <button class="btn btn-danger btn-sm float-end" data-bind="click: $parent.removeContextFilter">Remove</button>
+            </div>
+            <div class="card-body">
+                <h5>Select Categories</h5>
+                <ul class="list-group" data-bind="foreach: categories">
+                    <li class="list-group-item">
+                        <input type="checkbox" data-bind="checked: isSelected" />
+                        <span data-bind="text: name"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary mb-3" data-bind="click: addContextFilter">Add Context Filter</button>
+    <button class="btn btn-success" data-bind="click: submitComparison">Submit Comparison</button>
+</div>
+@section Scripts {
+    <script>
+        function ViewModel() {
+            var self = this;
+
+            self.queryText = ko.observable("");
+            self.contextFilters = ko.observableArray([]);
+
+            self.addContextFilter = function () {
+                var contextId = self.contextFilters().length + 1;
+                self.contextFilters.push(new ContextFilterViewModel(contextId));
+            };
+
+            self.removeContextFilter = function (contextFilter) {
+                self.contextFilters.remove(contextFilter);
+            };
+
+            self.submitComparison = function () {
+                var comparisonRequest = {
+                    question: self.queryText(),
+                    contexts: self.contextFilters().map(function(contextFilter) {
+                        return {
+                            categories: contextFilter.categories()
+                                .filter(cat => cat.isSelected())
+                                .map(cat => cat.name)
+                        };
+                    })
+                };
+
+                fetch('/api/Query/multicomparison', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(comparisonRequest)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            };
+        }
+
+        function ContextFilterViewModel(id) {
+            var self = this;
+
+            self.id = id;
+            self.categories = ko.observableArray([]);
+
+            // Fetch user-related categories
+            fetch('/api/UserData/categories')
+                .then(response => response.json())
+                .then(data => {
+                    self.categories(data.map(category => ({
+                        id: category.id,
+                        name: category.name,
+                        isSelected: ko.observable(false)
+                    })));
+                });
+        }
+
+        ko.applyBindings(new ViewModel());
+    </script>
+}
