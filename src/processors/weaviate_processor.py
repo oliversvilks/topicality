@@ -66,8 +66,8 @@ class WeaviateProcessor:
             filters=where_filter,
             grouped_task=prompt,
             generative_provider=GenerativeConfig.openai(
-                    model ="gpt-4.1",
-                    temperature=0.1,
+                    model ="gpt-4-turbo",
+                    temperature=0.3,
                 ),
             limit=3
         )           
