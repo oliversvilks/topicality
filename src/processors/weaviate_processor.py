@@ -60,14 +60,10 @@ class WeaviateProcessor:
         """Execute a generative query against a Weaviate collection."""
         filter_query = None
 
-        if where_filter:
-            filters = Filter.by_property("category").contains_all(where_filter)
-        else:
-            filters = None
         
         response = collection.generate.near_text(
             query=query,
-            filters=filters,
+            filters=where_filter,
             grouped_task=prompt,
             generative_provider=GenerativeConfig.openai(
                     model ="gpt-4.1",

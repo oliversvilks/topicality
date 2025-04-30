@@ -242,6 +242,17 @@ async def process_document(
         if 'processor' in locals():
             processor.client.close()
 
+def build_category_filter(categories):
+    """Build an OR filter for multiple categories."""
+    if not categories:
+        return None
+    # Start with the first category
+    filter_query = Filter.by_property("category").equal(categories[0])
+    # OR the rest
+    for cat in categories[1:]:
+        filter_query = filter_query | Filter.by_property("category").equal(cat)
+    return filter_query
+
 @app.post("/query")
 async def query_docs(request: QueryRequest):
     """
@@ -257,9 +268,7 @@ async def query_docs(request: QueryRequest):
         collection = processor.client.collections.get(request.users[0])  # Get the first user collection
 
         # Build where filter if categories are specified
-        where_filter = None
-        if request.categories:
-            where_filter = request.categories
+        where_filter = build_category_filter(request.categories) if request.categories else None
 
         response = processor.query(
             query=request.query,
