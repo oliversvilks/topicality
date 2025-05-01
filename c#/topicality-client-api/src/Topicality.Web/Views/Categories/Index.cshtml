@@ -1,0 +1,40 @@
+﻿@model IEnumerable<Topicality.Domain.Entities.UserCategory>
+
+
+<div class="card">
+    <div class="card-body">
+        <div class="card-title">Categories</div>
+        <p>
+            <a asp-action="Create">Create New</a>
+        </p>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>UserEmail</th>
+                <th>Name</th>
+                <th>Uuid</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.UserEmail</td>
+                    <td>@item.Name</td>
+                    <td>@item.Uuid</td>
+                    <td>
+                        <a href="/CategoryDocuments/ByCategory/@item.Id">Documents</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete Category</a> | 
+                        
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+   
+

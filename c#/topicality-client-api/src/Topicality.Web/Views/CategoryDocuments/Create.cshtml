@@ -1,0 +1,26 @@
+﻿@model Topicality.Domain.Entities.CategoryDocument
+
+<div class="card">
+    <div class="card-header">
+        Create Document
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            
+            <div class="form-group mt-1">
+                <label class="form-label">Upload Files</label>
+                <input type="file" name="files" multiple class="form-control" />
+            </div>
+            <!-- Hidden field for CategoryId -->
+            <input type="hidden" asp-for="CategoryId" value="@ViewBag.CategoryId" />
+
+            <div class="row">
+            <button type="submit" class="mt-1 btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
