@@ -44,7 +44,7 @@ namespace Topicality.Client.Infrastructure.Services
         {
             _httpClient = new HttpClient();
             _baseAddress =
-                "https://topicality-weaviate-dzefhwf9fzamfccu.westus2-01.azurewebsites.net/"; // configuration["WeaviateApiUrl"]; // Get the URL from configuration
+                ""; // configuration["WeaviateApiUrl"]; // Get the URL from configuration
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.BaseAddress = new Uri(_baseAddress);
