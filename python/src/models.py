@@ -3,21 +3,6 @@ from typing import List, Optional
 from datetime import datetime
 from datetime import timezone
 
-class DocumentMetadata(BaseModel):
-    title: str
-    filename: str
-    user: str
-    DocumentCreated: datetime
-    description: str
-    source: str
-    category: str
-    extension: str
-    datecreated: datetime
-    dateupdated: datetime
-
-class ProcessRequest(BaseModel):
-    documents: List[DocumentMetadata]
-
 class SchemaDefinition(BaseModel):
     title: str
     filename: str
@@ -95,11 +80,6 @@ class TextMetadata(BaseModel):
             }
         }
 
-class MultiContextFlowRequest(BaseModel):
-    question: str
-    entrance_category: str
-    contexts: List[ContextFilter]
-
 class TreeNode(BaseModel):
     entrance_category: str
     contexts: List[ContextFilter]
@@ -108,10 +88,6 @@ class FlowStep(BaseModel):
     entrance_category: str
     contexts: List[ContextFilter]
 
-class MultiTreeFlowRequest(BaseModel):
-    question: str
-    flow: List[FlowStep]
-
 # --- Response tracking ---
 class FlowNodeResponse(BaseModel):
     entrance_category: str
@@ -119,14 +95,6 @@ class FlowNodeResponse(BaseModel):
     reason: Optional[str]
     refined_question: Optional[str]
     response: Optional[str]
-
-class FlowStep(BaseModel):
-    entrance_category: str
-    response: str  # <--- NEW: answer at this node
-    next_category: Optional[str]
-    reason: Optional[str]
-    next_question: Optional[str]
-    finished: bool
 
 # ---- Models ----
 class Context(BaseModel):
@@ -170,7 +138,7 @@ class BlobDocumentRequest(BaseModel):
         schema_extra = {
             "example": {
                 "title": "tunesol-thermal-diffuse-en-pdf.pdf",
-                "user": "olvio@inbox.lv",
+                "user": "email_email_com",
                 "category": "test2",
                 "categoryId": "4",
                 "description": "tunesol-thermal-diffuse-en-pdf.pdf",
@@ -178,26 +146,14 @@ class BlobDocumentRequest(BaseModel):
                 "dateCreated": "2025-04-26T23:02:28Z",
                 "dateUpdated": "2025-04-26T23:02:28Z",
                 "extension": "pdf",
-                "source": "https://topicalityhub6820989656.blob.core.windows.net/topicality/tunesol-thermal-diffuse-en-pdf.pdf"
+                "source": "https:x.pdf"
             }
         }
 
-class TextQueryFilter(BaseModel):
-    user: str
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    annotation_contains: Optional[str] = None
+class MultiTreeFlowRequest(BaseModel):
+    question: str
+    flow: List[FlowStep]
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "user": "admin",
-                "start_date": "2024-04-01T00:00:00",
-                "end_date": "2024-04-11T23:59:59",
-                "text_contains": "meeting"
-            }
-        }
-        
 class MultiContextComparisonRequest(BaseModel):
     question: str
     contexts: List[ContextFilter]

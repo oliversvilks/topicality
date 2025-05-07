@@ -1,0 +1,15 @@
+setup.py
+src/__init__.py
+src/api.py
+src/models.py
+src/processors/__init__.py
+src/processors/weaviate_processor.py
+tests/__init__.py
+tests/conftest.py
+tests/unit/__init__.py
+tests/unit/test_api.py
+topicality.egg-info/PKG-INFO
+topicality.egg-info/SOURCES.txt
+topicality.egg-info/dependency_links.txt
+topicality.egg-info/requires.txt
+topicality.egg-info/top_level.txt

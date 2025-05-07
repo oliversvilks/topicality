@@ -8,15 +8,11 @@ import shutil
 import os
 import json
 from pathlib import Path
-from .models import FlowNodeResponse,MultiTreeFlowRequest, MultiContextFlowRequest, FlowStep,  MultiContextComparisonRequest, BlobDocumentRequest, ProcessRequest, DocumentMetadata, SchemaDefinition, ComparisonQueryRequest, ContextFilter, CopyDocumentRequest, TextMetadata, TextQueryFilter
-from .main import process_documents, setup_weaviate
+from .models import FlowNodeResponse, MultiTreeFlowRequest,  MultiContextComparisonRequest, BlobDocumentRequest, SchemaDefinition, ComparisonQueryRequest, ContextFilter, CopyDocumentRequest, TextMetadata 
 from .processors.weaviate_processor import WeaviateProcessor
 import weaviate.classes.config as wc
 from datetime import datetime
-from docling.datamodel.document import ConversionResult
 from docling.document_converter import DocumentConverter
-from docling_core.transforms.chunker import HierarchicalChunker
-from docling_core.transforms.chunker import BaseChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from weaviate.classes.query import Filter
 import logging
@@ -24,17 +20,19 @@ import openai
 from azure.storage.blob import BlobServiceClient
 import os
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
+load_dotenv() 
 app = FastAPI(
     title="Topicality Weaviate API",
     description="API for processing informtion contexts and documents",
     version="1.0.0"
 )
-
+#processor = WeaviateProcessor()
 DATA_DIR = Path("data/field_data")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -57,7 +55,6 @@ class QueryRequest(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     logger.debug("Starting up FastAPI application...")
-    setup_weaviate()
     logger.debug("Startup complete")
 
 @app.get("/")
@@ -96,6 +93,7 @@ async def process_document_blob(request: BlobDocumentRequest = Body(...)):
 
         # Process the document and save to Weaviate
         processor = WeaviateProcessor()
+        processor.client.connect()
         if not processor.client.collections.exists(metadata["user"]):
             collection = processor.create_schema(metadata["user"])
             print(f"Created new collection for user: {metadata['user']}")
@@ -263,16 +261,22 @@ async def query_docs(request: QueryRequest):
     - **prompt**: Prompt for generative search
     - **categories**: Optional list of categories to filter by
     """
+    processor = WeaviateProcessor()
     try:
-        processor = WeaviateProcessor()
+        
         collection = processor.client.collections.get(request.users[0])  # Get the first user collection
-
         # Build where filter if categories are specified
         where_filter = build_category_filter(request.categories) if request.categories else None
+        
+        enhanced_prompt = f"""
+        Based on the available context, answer this specific question: {request.query}
+        Provide the direct answer from the context. If the information is not available,
+        respond with "Information not found in the context" but try to elaborate if possible
+        """
 
         response = processor.query(
             query=request.query,
-            prompt=request.prompt,
+            prompt=enhanced_prompt,
             collection=collection,
             where_filter=where_filter
         )

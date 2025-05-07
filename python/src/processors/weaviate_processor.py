@@ -72,11 +72,8 @@ class WeaviateProcessor:
             limit=3
         )           
                
-        
-        
-
         print(response)
-            # Prettify the output using Rich
+       # Prettify the output using Rich
         console = Console()
         console.print(
                 Panel(f"{prompt}".replace("{text}", query), 
