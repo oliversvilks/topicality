@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Topicality.Client.Application.Dto;
 using Topicality.Client.Application.Helpers;
@@ -8,6 +9,7 @@ using Topicality.Domain.Interfaces;
 
 namespace Topicality.Web.Controllers
 {
+    [Authorize]
     public class CategoryDocumentsController : Controller
     {
         private readonly ICategoryDocumentService _categoryDocumentService;
