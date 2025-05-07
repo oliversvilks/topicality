@@ -1,7 +1,9 @@
 
 # Topicality Weaviate API
 
-#Warning!! This project is in alpha stage. With bugs and problems. DO NOT test the endpoints with sensitive data, copyrighted documents and unlawful content.
+# Warning!! 
+
+This project is in alpha stage. With bugs and problems. DO NOT test the endpoints with sensitive data, copyrighted documents and unlawful content.
 
 ## Overview
 
@@ -77,7 +79,14 @@ restrictions for commercial use. Contact me for commercial licensing.
 
 ## Use Cases and Benefits
 
-In any company or department, regardless of how well-structured information and policies are, employees are often inundated with emails, Teams messages, Jira tasks, Git comments, meetings, conversations, new documents, new approaches, and changes. Sometimes, this information gets lost or overlooked. Previously, I used to jot down notes in Notepad++ to keep track of temporary information. Now, I use this system to enter text into the "notes" category, ensuring that even tiny pieces of information are easily retrievable.
+In any company or department, regardless of how well-structured information and policies are, employees are often inundated with emails, Teams messages, Jira tasks, Git comments, meetings, conversations, new documents, new approaches, and changes. Sometimes, this information gets lost or overlooked. 
+
+## Overwhelming Information Flow
+
+![image](img.jpg)
+
+
+Previously, I used to jot down notes in Notepad++ to keep track of temporary information. Now, I use this system to enter text into the "notes" category, ensuring that even tiny pieces of information are easily retrievable.
 
 As a programmer, I frequently need to read through requirement documents, analysis reports, integration documentation, third-party codebases, and past Jira tasks. With this system, I can compile all relevant information under one category and work with it by asking specific questions.
 
