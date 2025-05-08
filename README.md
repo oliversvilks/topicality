@@ -81,7 +81,7 @@ restrictions for commercial use. Contact me for commercial licensing.
 
 In any company or department, regardless of how well-structured information and policies are, employees are often inundated with emails, Teams messages, Jira tasks, Git comments, meetings, conversations, new documents, new approaches, and changes. Sometimes, this information gets lost or overlooked. 
 
-## Overwhelming Information Flow
+## No More Overwhelming Information Flow
 
 ![image](img.jpg)
 
