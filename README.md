@@ -114,6 +114,39 @@ Although the project is submitted for the AI Hackathon, it will continue to be i
 - **Web Integration for Comparisons and Flows**: Extend comparisons and flows to the web using structured outputs for enhanced presentation experiences.
 
 
+## Real-World Use Case of Comparison
+
+This repository contains two survey result files related to a Master's thesis in Social Work, focusing on the utilization of digital technologies.
+
+**Note:** The files are in Latvian.
+
+- [Specialists](Aptaujas_speciālistiem_rezultati_53.xlsx)
+- [Citizens](Aptaujas_iedzīvotājiem_rezultati_55.xlsx)
+
+The goal is to compare and identify problems in communication between citizens and specialists.
+
+### Steps to Compare:
+
+1. **Create Categories**:
+   - Create two categories: "Citizens" and "Specialists".
+
+2. **Upload Files**:
+   - Upload the relevant file into each category.
+
+3. **Initiate Comparison**:
+   - In the "Compare" section, ask the following question:
+     - "Compare the two groups: one is specialists and the second is citizens receiving social services from specialists. Investigate their communication methods and identify the weak points in communication."
+
+4. **Add Context Filters**:
+   - Click on "Add Context Filters" and check the "Specialists" category.
+   - Add a second context by clicking "Add Context Filters" again and select the "Citizens" category.
+
+5. **Submit Comparison**:
+   - Click "Submit Comparison". This process might take a while, but the result will be similar to the following:
+
+![Comparison result](result.png)
+
+
 ## Contact
 
 For any questions or support, please contact the maintainers through the repository issues page.
